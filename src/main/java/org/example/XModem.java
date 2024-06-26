@@ -25,8 +25,53 @@ public class XModem {
     private final int TIMEOUT = 2000; // Milliseconds
     private final int DATA_RATE = 9600;
 
+    // =====================================================
+
     public XModem(String portName) {
         initialize(portName);
+    }
+
+    public void initialize(String portName) {
+        SerialPort serialPort;
+        CommPortIdentifier portId = null;
+        Enumeration portEnum = CommPortIdentifier.getPortIdentifiers();
+
+        // Enumerate through, looking for the port
+        while (portEnum.hasMoreElements()) {
+            CommPortIdentifier currPortId = (CommPortIdentifier) portEnum.nextElement();
+            logger.info(currPortId.getName());
+            if (currPortId.getName().equals(portName)) {
+                logger.info("portId: " + currPortId.getName());
+                portId = currPortId;
+                break;
+            }
+        }
+
+        if (portId == null) {
+            logger.severe("Receiver: Could not find COM port.");
+            return;
+        }
+
+        try {
+            // Open serial port
+            serialPort = (SerialPort) portId.open(this.getClass().getName(), TIMEOUT);
+            logger.info(portId.getName() + " opened");
+
+            // Set port parameters
+            serialPort.setSerialPortParams(DATA_RATE,
+                    SerialPort.DATABITS_8,
+                    SerialPort.STOPBITS_1,
+                    SerialPort.PARITY_NONE);
+            logger.info("parameters set");
+
+            in = serialPort.getInputStream();
+            logger.info("input stream");
+            out = serialPort.getOutputStream();
+            logger.info("output stream");
+
+        } catch (Exception e) {
+            logger.severe("Receiver: some exception");
+        }
     }
 
     /* S - Sender ; R - Reciever
@@ -132,43 +177,6 @@ public class XModem {
 
     private byte getChar() throws IOException {
         return (byte) in.read();
-    }
-
-    public void initialize(String portName) {
-        SerialPort serialPort;
-        CommPortIdentifier portId = null;
-        Enumeration portEnum = CommPortIdentifier.getPortIdentifiers();
-
-        // Enumerate through, looking for the port
-        while (portEnum.hasMoreElements()) {
-            CommPortIdentifier currPortId = (CommPortIdentifier) portEnum.nextElement();
-            if (currPortId.getName().equals(portName)) {
-                portId = currPortId;
-                break;
-            }
-        }
-
-        if (portId == null) {
-            logger.severe("Receiver: Could not find COM port.");
-            return;
-        }
-
-        try {
-            // Open serial port
-            serialPort = (SerialPort) portId.open(this.getClass().getName(), TIMEOUT);
-
-            // Set port parameters
-            serialPort.setSerialPortParams(DATA_RATE,
-                    SerialPort.DATABITS_8,
-                    SerialPort.STOPBITS_1,
-                    SerialPort.PARITY_NONE);
-
-            in = serialPort.getInputStream();
-            out = serialPort.getOutputStream();
-
-        } catch (Exception e) {
-            logger.severe("Receiver: some exception");
-        }
     }
 
 }

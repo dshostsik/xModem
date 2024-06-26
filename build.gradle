@@ -1,5 +1,6 @@
 plugins {
     id 'java'
+    id 'application'
 }
 
 group = 'org.example'
@@ -12,9 +13,14 @@ repositories {
 dependencies {
     testImplementation platform('org.junit:junit-bom:5.10.0')
     testImplementation 'org.junit.jupiter:junit-jupiter'
-    implementation 'org.rxtx:rxtx:2.2.0'
+    implementation 'org.rxtx:rxtx:2.1.7'
 }
 
 test {
     useJUnitPlatform()
+}
+
+application {
+    mainClassName = 'org.example.Main'
+    applicationDefaultJvmArgs = ["-Djava.library.path=libs/natives"]
 }
