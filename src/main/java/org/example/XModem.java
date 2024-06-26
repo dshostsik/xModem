@@ -1,17 +1,33 @@
 package org.example;
 
+
+import gnu.io.CommPortIdentifier;
+import gnu.io.SerialPort;
+import gnu.io.SerialPortEvent;
+import gnu.io.SerialPortEventListener;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.logging.Logger;
 
-public class Reciever {
+public class XModem {
 
     private final byte SOH = 1; /*Start of Header*/
     private final byte EOT = 4; /*End of Transmission*/
     private final byte ACK = 6; /*Acknowledgement*/
     private final byte NAK = 7;
     private final int BLOCK_SIZE = 128;
+
+    static Logger logger = Logger.getLogger(XModem.class.getName());
+
+    protected InputStream in;
+    protected OutputStream out;
+
+    public XModem(SerialPort serialPort) {
+        this.in = serialPort.getInputStream();
+        this.out = serialPort.getOutputStream();
+    }
 
     /* S - Sender ; R - Reciever
      * Co 10 sekund R przesyła NAK w ciągu minuty.
@@ -23,18 +39,6 @@ public class Reciever {
      *   4. obliczenie sumy [samodzielnie]
      *   5. wysłanie ACK bądź NAK
      * */
-
-    static Logger logger = Logger.getLogger(Reciever.class.getName());
-
-    protected InputStream in;
-    protected OutputStream out;
-
-    byte[] content;
-
-    public Reciever(InputStream in, OutputStream out) {
-        this.in = in;
-        this.out = out;
-    }
 
     public void recieve() throws IOException {
         byte character;
