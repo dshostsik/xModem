@@ -115,15 +115,9 @@ public class Reciever {
 
                 if (counter == blocks) {
                     sendChar(EOT);
+                    logger.info("Sender: transmission succeeded");
                     break;
                 }
-            }
-        }
-
-        while (true) {
-            if (getChar() == ACK) {
-                logger.info("Sender: transmission succeeded");
-                break;
             }
         }
     }
