@@ -1,14 +1,12 @@
 package org.example;
 
-
 import gnu.io.CommPortIdentifier;
 import gnu.io.SerialPort;
-import gnu.io.SerialPortEvent;
-import gnu.io.SerialPortEventListener;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Enumeration;
 import java.util.logging.Logger;
 
 public class XModem {
@@ -24,9 +22,11 @@ public class XModem {
     protected InputStream in;
     protected OutputStream out;
 
-    public XModem(SerialPort serialPort) {
-        this.in = serialPort.getInputStream();
-        this.out = serialPort.getOutputStream();
+    private final int TIMEOUT = 2000; // Milliseconds
+    private final int DATA_RATE = 9600;
+
+    public XModem(String portName) {
+        initialize(portName);
     }
 
     /* S - Sender ; R - Reciever
@@ -40,7 +40,7 @@ public class XModem {
      *   5. wysłanie ACK bądź NAK
      * */
 
-    public void recieve() throws IOException {
+    public void receive() throws IOException {
         byte character;
         byte[] block = new byte[BLOCK_SIZE];
         byte sum = 0;
@@ -132,6 +132,43 @@ public class XModem {
 
     private byte getChar() throws IOException {
         return (byte) in.read();
+    }
+
+    public void initialize(String portName) {
+        SerialPort serialPort;
+        CommPortIdentifier portId = null;
+        Enumeration portEnum = CommPortIdentifier.getPortIdentifiers();
+
+        // Enumerate through, looking for the port
+        while (portEnum.hasMoreElements()) {
+            CommPortIdentifier currPortId = (CommPortIdentifier) portEnum.nextElement();
+            if (currPortId.getName().equals(portName)) {
+                portId = currPortId;
+                break;
+            }
+        }
+
+        if (portId == null) {
+            logger.severe("Receiver: Could not find COM port.");
+            return;
+        }
+
+        try {
+            // Open serial port
+            serialPort = (SerialPort) portId.open(this.getClass().getName(), TIMEOUT);
+
+            // Set port parameters
+            serialPort.setSerialPortParams(DATA_RATE,
+                    SerialPort.DATABITS_8,
+                    SerialPort.STOPBITS_1,
+                    SerialPort.PARITY_NONE);
+
+            in = serialPort.getInputStream();
+            out = serialPort.getOutputStream();
+
+        } catch (Exception e) {
+            logger.severe("Receiver: some exception");
+        }
     }
 
 }
